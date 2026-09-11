@@ -1,3 +1,4 @@
+import PRPreview from './PRPreview'
 import type { Task } from '@/lib/types'
 
 interface Props {
@@ -52,6 +53,7 @@ export default function FirstTasks({ tasks }: Props) {
                 )}
               </div>
             )}
+            <PRPreview task={task} />
           </div>
         ))}
       </div>

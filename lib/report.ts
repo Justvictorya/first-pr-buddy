@@ -17,6 +17,15 @@ function isTestFile(f: string): boolean {
   return TEST_KEYWORDS.some((k) => f.includes(k)) || COMMON_EXT_SPLIT.test(f)
 }
 
+function perFileInsights(files: string[]): { entry: string; deps: string[] } {
+  const entry = files.find(f => /(index|main|app)\./.test(f)) || files[0] || ''
+  const deps = [...new Set(files.slice(0,5).flatMap(f => {
+    const m = f.match(/\.([jt]sx?)$/)
+    return m ? [m[1]] : []
+  }))].slice(0,3)
+  return { entry, deps }
+}
+
 function buildArchitectureTree(modules: Module[], manifests: { path: string; content: string | null }[]): RepoNode[] {
   const root: RepoNode = { id: 'root', name: '.', path: '', type: 'dir', children: [] }
 

@@ -6,6 +6,8 @@ import ArchitectureMap from '@/components/ArchitectureMap'
 import RepoTour from '@/components/RepoTour'
 import FirstTasks from '@/components/FirstTasks'
 import Glossary from '@/components/Glossary'
+import ReportChat from '@/components/ReportChat'
+import ProgressTracker from '@/components/ProgressTracker'
 
 export default function Home() {
   const [repoUrl, setRepoUrl] = useState('')
@@ -137,10 +139,12 @@ export default function Home() {
                 Generated in {report.analysisSeconds}s
               </span>
             </div>
+            <ProgressTracker repo={report.repo.fullName} />
             <ArchitectureMap nodes={report.architectureMap} />
             <RepoTour tour={report.tour} />
             <FirstTasks tasks={report.firstTasks} />
             <Glossary patterns={report.glossary.patterns} gotchas={report.glossary.gotchas} />
+            <ReportChat report={report} />
           </div>
         </section>
       )}
