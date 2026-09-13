@@ -5,6 +5,7 @@ import type {
   Task,
   GlossaryTerm,
   Gotcha,
+  SetupInfo,
 } from './types'
 import type { ScanResult, Module } from './scanner'
 import type { BobRepoAnalysis } from './bob'
@@ -305,6 +306,53 @@ function overviewFromScan(scan: ScanResult, framework: { name: string; details: 
   return parts.join(' ')
 }
 
+function buildSetup(scan: ScanResult): SetupInfo {
+  const pkg = scan.manifests.find((m) => m.path === 'package.json')?.content
+  let scripts: { name: string; command: string }[] = []
+  let packageManager = 'npm'
+  if (pkg) {
+    try {
+      const parsed = JSON.parse(pkg)
+      scripts = Object.entries(parsed.scripts || {})
+        .map(([name, command]) => ({ name, command: String(command) }))
+        .slice(0, 8)
+      if (parsed.packageManager) packageManager = String(parsed.packageManager).split('@')[0]
+    } catch { /* ignore */ }
+  }
+
+  const paths = new Set(scan.manifests.map((m) => m.path))
+  if (paths.has('pnpm-lock.yaml')) packageManager = 'pnpm'
+  else if (paths.has('yarn.lock')) packageManager = 'yarn'
+
+  const hasDockerfile = paths.has('Dockerfile') || scan.manifests.some((m) => m.path.startsWith('Dockerfile'))
+  const dockerCompose = scan.manifests.find((m) => m.path === 'docker-compose.yml')?.content
+  const dockerCommands: string[] = []
+  if (dockerCompose) dockerCommands.push('docker compose up')
+  else if (hasDockerfile) dockerCommands.push('docker build -t app .', 'docker run app')
+
+  const hasMakefile = paths.has('Makefile')
+  const envManifest = scan.manifests.find((m) => /\.env\.(example|sample)$/.test(m.path))
+  const envVars = Array.from(new Set(
+    (envManifest?.content || '')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#') && /^[A-Z_][A-Z0-9_]*\s*=/.test(l))
+      .map((l) => l.split('=')[0].trim())
+  )).slice(0, 12)
+
+  const installCommand = packageManager === 'pnpm' ? 'pnpm install' : packageManager === 'yarn' ? 'yarn install' : 'npm install'
+
+  return {
+    packageManager,
+    installCommand,
+    scripts,
+    envVars,
+    hasDockerfile,
+    hasMakefile,
+    dockerCommands,
+  }
+}
+
 /**
  * Generate a complete onboarding package deterministically from the scan.
  * `bobAnalysis` (optional) can upgrade module data with Bob 2.0 structured
@@ -356,6 +404,7 @@ export function generateReport(
     },
     firstTasks: generateFirstTasks(scan, modules),
     glossary: generateGlossary(scan, framework),
+    setup: buildSetup(scan),
     generatedAt: new Date().toISOString(),
     analysisSeconds: Math.max(1, Math.round((Date.now() - startMs) / 1000)),
     modelUsed: process.env.BOB_ENABLED === 'true' ? 'IBM Bob 2.0 (agent mode)' : 'local analyzer (Bob 2.0 pending kickoff access)',

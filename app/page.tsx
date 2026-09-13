@@ -6,6 +6,7 @@ import ArchitectureMap from '@/components/ArchitectureMap'
 import RepoTour from '@/components/RepoTour'
 import FirstTasks from '@/components/FirstTasks'
 import Glossary from '@/components/Glossary'
+import GettingStarted from '@/components/GettingStarted'
 import ReportChat from '@/components/ReportChat'
 import ProgressTracker from '@/components/ProgressTracker'
 
@@ -140,7 +141,8 @@ export default function Home() {
               </span>
             </div>
             <ProgressTracker repo={report.repo.fullName} />
-            <ArchitectureMap nodes={report.architectureMap} />
+            <GettingStarted setup={report.setup} />
+            <ArchitectureMap nodes={report.architectureMap} repo={report.repo} />
             <RepoTour tour={report.tour} />
             <FirstTasks tasks={report.firstTasks} />
             <Glossary patterns={report.glossary.patterns} gotchas={report.glossary.gotchas} />

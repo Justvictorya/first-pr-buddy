@@ -5,6 +5,7 @@ const MANIFEST_FILES = [
   'go.mod', 'requirements.txt', 'Gemfile', 'composer.json', 'build.gradle',
   'pom.xml', 'Dockerfile', 'docker-compose.yml', '.github/workflows',
   'Makefile', 'CODEOWNERS', 'CONTRIBUTING.md', 'LICENSE', 'AGENTS.md',
+  '.env.example', '.env.sample',
 ]
 
 const SKIP_DIRS = new Set([

@@ -51,6 +51,16 @@ export interface Gotcha {
   severity: 'low' | 'medium' | 'high'
 }
 
+export interface SetupInfo {
+  packageManager: string
+  installCommand: string
+  scripts: { name: string; command: string }[]
+  envVars: string[]
+  hasDockerfile: boolean
+  hasMakefile: boolean
+  dockerCommands?: string[]
+}
+
 export interface OnboardingReport {
   repo: RepoStats
   architectureMap: RepoNode[]
@@ -64,6 +74,7 @@ export interface OnboardingReport {
     patterns: GlossaryTerm[]
     gotchas: Gotcha[]
   }
+  setup: SetupInfo
   generatedAt: string
   analysisSeconds: number
   modelUsed: string
