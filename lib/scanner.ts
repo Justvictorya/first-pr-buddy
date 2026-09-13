@@ -87,12 +87,16 @@ export async function scanRepo(repo: ClonedRepo): Promise<ScanResult> {
   const topLevelDirs = [...new Set(realFiles.map((f) => f.split('/')[0]).filter((d) => !SKIP_DIRS.has(d)).filter((d) => d.includes('.')))].slice(0, 40)
   const modulePaths = new Set(realFiles.map((f) => f.includes('/') ? f.split('/').slice(0, 2).join('/') : f))
 
+  const HIDDEN_TOP = new Set(['.github', '.claude', '.codesandbox', '.vscode', '.idea'])
   const modules: Module[] = []
   const seen = new Set<string>()
   for (const f of realFiles) {
+    const top = f.split('/')[0]
+    const isHiddenFile = f.startsWith('.') && !f.includes('/')
+    const isHiddenDir = HIDDEN_TOP.has(top) || (top.startsWith('.') && f.includes('/'))
+    if (isHiddenFile || isHiddenDir) continue
     const parts = f.split('/')
     if (parts.length === 1) {
-      // root-level entry file
       const key = f
       if (seen.has(key)) continue
       seen.add(key)
