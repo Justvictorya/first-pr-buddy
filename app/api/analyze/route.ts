@@ -3,6 +3,7 @@ import { cloneRepo, listFiles, getFile, cleanupRepo } from '@/lib/clone'
 import { scanRepo } from '@/lib/scanner'
 import { analyzeWithBob } from '@/lib/bob'
 import { generateReport } from '@/lib/report'
+import { getCache, setCache, buildSourceMap, serializeReport } from '@/lib/cache'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -24,6 +25,17 @@ export async function POST(req: NextRequest) {
     }
     if (!isValidGitUrl(repoUrl)) {
       return NextResponse.json({ error: 'That doesn\u2019t look like a valid git URL' }, { status: 400 })
+    }
+
+    // 0. Cache check — return instantly for a recently analyzed repo
+    const cached = getCache(repoUrl)
+    if (cached) {
+      return NextResponse.json({
+        report: serializeReport(cached.report),
+        cached: true,
+        sourceSamples: cached.sourceSamples,
+        analysisSeconds: 0,
+      })
     }
 
     // 1. Clone / fetch the tree
@@ -49,7 +61,17 @@ export async function POST(req: NextRequest) {
       startMs
     )
 
-    return NextResponse.json({ report })
+    // 5. Cache + return (include source samples for grounded chat)
+    const sourceSamples = scan.sourceSamples
+    const sourceMap = buildSourceMap(sourceSamples)
+    setCache(repoUrl, repo.defaultBranch, { report, sourceSamples, sourceMap })
+
+    return NextResponse.json({
+      report: serializeReport(report),
+      cached: false,
+      sourceSamples,
+      analysisSeconds: Math.max(1, Math.round((Date.now() - startMs) / 1000)),
+    })
   } catch (err) {
     console.error('[analyze]', err)
     const message = err instanceof Error ? err.message : 'Analysis failed'
@@ -60,6 +82,5 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Root-language sanity check used by the scanner-import above in dev; keep tree-shakeable.
 void listFiles
 void getFile

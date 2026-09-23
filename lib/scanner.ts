@@ -27,6 +27,8 @@ export interface ScanResult {
   modules: Module[]
   fileCount: number
   topFiles: string[]
+  /** Sampled source files (path → content) for LLM context. Capped & prioritized. */
+  sourceSamples: { path: string; content: string }[]
 }
 
 const LANGUAGE_HINTS: { ext: string; name: string }[] = [
@@ -119,12 +121,61 @@ export async function scanRepo(repo: ClonedRepo): Promise<ScanResult> {
   ].filter((x, i, arr) => arr.indexOf(x) === i).slice(0, 40)
   void topLevelDirs
 
+  // Sample representative source files for LLM context.
+  // Priority: entry points, then files in the largest modules, capped by size & count.
+  const sourceSamples = await sampleSources(repo, realFiles, modules)
+
   return {
     language,
     manifests,
     description: descMatch ? descMatch[1].slice(0, 300) : null,
     modules,
     fileCount: realFiles.length,
-    topFiles: [],
+    topFiles,
+    sourceSamples,
   }
+}
+
+/**
+ * Pick up to `MAX_SAMPLES` representative source files and read their contents.
+ * Prioritizes entry points (index/main/app) and files from the largest modules,
+ * skips test files and anything over the per-file byte cap.
+ */
+const MAX_SAMPLES = 12
+const MAX_SAMPLE_BYTES = 8_000
+
+async function sampleSources(
+  repo: ClonedRepo,
+  files: string[],
+  modules: Module[]
+): Promise<{ path: string; content: string }[]> {
+  const isTest = (f: string) => /\.(test|spec)\./.test(f) || /(__tests__|\/tests?\/)/.test(f)
+  const isSource = (f: string) => /\.(ts|tsx|js|jsx|py|go|rs|rb|java|c|cpp|php|swift|kt)$/.test(f)
+
+  const candidates = files
+    .filter((f) => isSource(f) && !isTest(f) && !f.includes('/node_modules/'))
+    .sort((a, b) => {
+      // entry points first
+      const aEntry = /(index|main|app|server|cli)\.(ts|tsx|js|jsx|py|go)$/.test(a) ? 0 : 1
+      const bEntry = /(index|main|app|server|cli)\.(ts|tsx|js|jsx|py|go)$/.test(b) ? 0 : 1
+      if (aEntry !== bEntry) return aEntry - bEntry
+      // then by module size (larger modules first)
+      const aMod = modules.find((m) => m.files.includes(a))
+      const bMod = modules.find((m) => m.files.includes(b))
+      return (bMod?.files.length || 0) - (aMod?.files.length || 0)
+    })
+
+  const seen = new Set<string>()
+  const samples: { path: string; content: string }[] = []
+  for (const f of candidates) {
+    if (samples.length >= MAX_SAMPLES) break
+    const dir = f.split('/').slice(0, 2).join('/')
+    if (seen.has(dir) && samples.length > 2) continue // spread across modules after entries
+    seen.add(f)
+    const content = await getFile(repo, f)
+    if (content === null) continue
+    const trimmed = content.length > MAX_SAMPLE_BYTES ? content.slice(0, MAX_SAMPLE_BYTES) : content
+    samples.push({ path: f, content: trimmed })
+  }
+  return samples
 }

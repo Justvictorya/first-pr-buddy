@@ -15,7 +15,9 @@ export default function Home() {
   const [status, setStatus] = useState<'idle' | 'cloning' | 'analyzing' | 'generating' | 'done' | 'error'>('idle')
   const [progress, setProgress] = useState('')
   const [report, setReport] = useState<OnboardingReport | null>(null)
+  const [sourceSamples, setSourceSamples] = useState<{ path: string; content: string }[]>([])
   const [error, setError] = useState('')
+  const [cached, setCached] = useState(false)
 
   async function analyze(e: React.FormEvent) {
     e.preventDefault()
@@ -24,6 +26,8 @@ export default function Home() {
     setProgress('Cloning repository…')
     setError('')
     setReport(null)
+    setSourceSamples([])
+    setCached(false)
 
     try {
       const res = await fetch('/api/analyze', {
@@ -39,11 +43,21 @@ export default function Home() {
 
       const data = await res.json()
       setReport(data.report)
+      setSourceSamples(Array.isArray(data.sourceSamples) ? data.sourceSamples : [])
+      setCached(Boolean(data.cached))
       setStatus('done')
     } catch (err) {
       setStatus('error')
       setError(err instanceof Error ? err.message : 'Something went wrong')
     }
+  }
+
+  function analyzeAnother() {
+    setRepoUrl('')
+    setReport(null)
+    setSourceSamples([])
+    setError('')
+    setStatus('idle')
   }
 
   const isAnalyzing = status === 'cloning' || status === 'analyzing' || status === 'generating'
@@ -85,7 +99,7 @@ export default function Home() {
                 {isAnalyzing ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                    {status === 'cloning' ? 'Cloning…' : status === 'analyzing' ? 'Bob is analyzing…' : 'Generating…'}
+                    {status === 'cloning' ? 'Cloning…' : status === 'analyzing' ? 'Analyzing…' : 'Generating…'}
                   </span>
                 ) : (
                   'Generate onboarding'
@@ -110,7 +124,7 @@ export default function Home() {
                   {status === 'cloning' ? '●' : '✓'} Clone
                 </span>
                 <span className={status === 'analyzing' ? 'text-sky-400' : 'text-slate-500'}>
-                  {status === 'analyzing' ? '●' : '✓'} Bob subagents
+                  {status === 'analyzing' ? '●' : '✓'} Scan
                 </span>
                 <span className={status === 'generating' ? 'text-sky-400' : 'text-slate-500'}>
                   {status === 'generating' ? '●' : '✓'} Report
@@ -121,9 +135,15 @@ export default function Home() {
           )}
 
           {status === 'error' && error && (
-            <p className="mx-auto mt-6 max-w-xl rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {error}
-            </p>
+            <div className="mx-auto mt-6 max-w-xl rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <p>{error}</p>
+              <button
+                onClick={analyzeAnother}
+                className="mt-2 text-xs font-semibold text-red-300 underline"
+              >
+                Try again
+              </button>
+            </div>
           )}
         </div>
       </section>
@@ -136,9 +156,22 @@ export default function Home() {
               <h2 className="text-2xl font-bold">
                 Onboarding package for <span className="text-sky-400">{report.repo.fullName}</span>
               </h2>
-              <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                Generated in {report.analysisSeconds}s
-              </span>
+              <div className="flex items-center gap-2">
+                {cached && (
+                  <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-400">
+                    Cached
+                  </span>
+                )}
+                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                  Generated in {report.analysisSeconds}s
+                </span>
+                <button
+                  onClick={analyzeAnother}
+                  className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300 hover:border-slate-500"
+                >
+                  Analyze another →
+                </button>
+              </div>
             </div>
             <ProgressTracker repo={report.repo.fullName} />
             <GettingStarted setup={report.setup} />
@@ -146,7 +179,7 @@ export default function Home() {
             <RepoTour tour={report.tour} />
             <FirstTasks tasks={report.firstTasks} />
             <Glossary patterns={report.glossary.patterns} gotchas={report.glossary.gotchas} />
-            <ReportChat report={report} />
+            <ReportChat report={report} sourceSamples={sourceSamples} />
           </div>
         </section>
       )}
