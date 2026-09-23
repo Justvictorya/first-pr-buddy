@@ -1,6 +1,6 @@
 # First PR Buddy
 
-**IBM Bob 2.0 Hackathon — AI Onboarding Copilot**
+**AI Onboarding Copilot**
 
 ## The Problem
 

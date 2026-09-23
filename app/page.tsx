@@ -54,7 +54,7 @@ export default function Home() {
       <section className="border-b border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 px-6 py-20">
         <div className="mx-auto max-w-3xl text-center">
           <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-sky-400">
-            AI Onboarding Copilot · IBM Bob 2.0 Hackathon
+            AI Onboarding Copilot
           </p>
           <h1 className="mb-6 text-4xl font-bold leading-tight sm:text-6xl">
             Your first PR,{' '}
