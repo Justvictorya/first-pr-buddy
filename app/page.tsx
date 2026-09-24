@@ -63,116 +63,115 @@ export default function Home() {
   const isAnalyzing = status === 'cloning' || status === 'analyzing' || status === 'generating'
 
   return (
-    <main className="min-h-screen">
+    <main className="mx-auto max-w-5xl px-6">
       {/* Hero */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 px-6 py-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-sky-400">
-            AI Onboarding Copilot
-          </p>
-          <h1 className="mb-6 text-4xl font-bold leading-tight sm:text-6xl">
-            Your first PR,{' '}
-            <span className="bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent">
-              hours early
-            </span>
-          </h1>
-          <p className="mb-10 text-lg text-slate-400">
-            Point it at any codebase. Get an architecture map, a guided tour, your first 3 tasks,
-            and the glossary of gotchas — in seconds.
-          </p>
+      <section className="py-20 text-center">
+        <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-sky-400">
+          AI Onboarding Copilot
+        </p>
+        <h1 className="mb-6 text-4xl font-bold leading-tight sm:text-6xl">
+          Your first PR,{' '}
+          <span className="bg-gradient-to-r from-sky-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">
+            hours early
+          </span>
+        </h1>
+        <p className="mx-auto mb-10 max-w-2xl text-lg text-slate-400">
+          Point it at any codebase. Get an architecture map, a guided tour, real
+          GitHub issues to fix, and the glossary of gotchas — in seconds.
+        </p>
 
-          {/* URL input */}
-          <form onSubmit={analyze} className="mx-auto max-w-xl">
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                type="text"
-                value={repoUrl}
-                onChange={(e) => setRepoUrl(e.target.value)}
-                placeholder="https://github.com/facebook/react"
-                className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+        {/* URL input */}
+        <form onSubmit={analyze} className="mx-auto max-w-xl">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              type="text"
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
+              placeholder="https://github.com/facebook/react"
+              className="input-field"
+            />
+            <button
+              type="submit"
+              disabled={isAnalyzing || !repoUrl.trim()}
+              className="btn-primary whitespace-nowrap"
+            >
+              {isAnalyzing ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  {status === 'cloning' ? 'Cloning…' : status === 'analyzing' ? 'Analyzing…' : 'Generating…'}
+                </span>
+              ) : (
+                'Generate onboarding'
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Progress steps */}
+        {isAnalyzing && (
+          <div className="mx-auto mt-8 max-w-xl">
+            <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-slate-800">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all duration-500"
+                style={{
+                  width: status === 'cloning' ? '20%' : status === 'analyzing' ? '60%' : '90%',
+                }}
               />
-              <button
-                type="submit"
-                disabled={isAnalyzing || !repoUrl.trim()}
-                className="rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {isAnalyzing ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                    {status === 'cloning' ? 'Cloning…' : status === 'analyzing' ? 'Analyzing…' : 'Generating…'}
-                  </span>
-                ) : (
-                  'Generate onboarding'
-                )}
-              </button>
             </div>
-          </form>
+            <div className="flex justify-center gap-6 text-xs font-medium text-slate-400">
+              <span className={status === 'cloning' ? 'text-sky-400' : 'text-slate-500'}>
+                {status === 'cloning' ? '●' : '✓'} Clone
+              </span>
+              <span className={status === 'analyzing' ? 'text-sky-400' : 'text-slate-500'}>
+                {status === 'analyzing' ? '●' : '✓'} Scan
+              </span>
+              <span className={status === 'generating' ? 'text-sky-400' : 'text-slate-500'}>
+                {status === 'generating' ? '●' : '✓'} Report
+              </span>
+            </div>
+            {progress && <p className="mt-4 text-sm text-slate-500">{progress}</p>}
+          </div>
+        )}
 
-          {/* Progress steps */}
-          {isAnalyzing && (
-            <div className="mx-auto mt-8 max-w-xl">
-              <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-slate-800">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all duration-500"
-                  style={{
-                    width: status === 'cloning' ? '20%' : status === 'analyzing' ? '60%' : '90%',
-                  }}
-                />
-              </div>
-              <div className="flex justify-center gap-6 text-xs font-medium text-slate-400">
-                <span className={status === 'cloning' ? 'text-sky-400' : 'text-slate-500'}>
-                  {status === 'cloning' ? '●' : '✓'} Clone
-                </span>
-                <span className={status === 'analyzing' ? 'text-sky-400' : 'text-slate-500'}>
-                  {status === 'analyzing' ? '●' : '✓'} Scan
-                </span>
-                <span className={status === 'generating' ? 'text-sky-400' : 'text-slate-500'}>
-                  {status === 'generating' ? '●' : '✓'} Report
-                </span>
-              </div>
-              {progress && <p className="mt-4 text-sm text-slate-500">{progress}</p>}
-            </div>
-          )}
-
-          {status === 'error' && error && (
-            <div className="mx-auto mt-6 max-w-xl rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              <p>{error}</p>
-              <button
-                onClick={analyzeAnother}
-                className="mt-2 text-xs font-semibold text-red-300 underline"
-              >
-                Try again
-              </button>
-            </div>
-          )}
-        </div>
+        {status === 'error' && error && (
+          <div className="mx-auto mt-6 max-w-xl rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <p>{error}</p>
+            <button
+              onClick={analyzeAnother}
+              className="mt-2 text-xs font-semibold text-red-300 underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Report */}
       {report && (
-        <section className="px-6 py-12">
-          <div className="mx-auto max-w-5xl space-y-12">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">
-                Onboarding package for <span className="text-sky-400">{report.repo.fullName}</span>
-              </h2>
-              <div className="flex items-center gap-2">
-                {cached && (
-                  <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-400">
-                    Cached
-                  </span>
-                )}
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                  Generated in {report.analysisSeconds}s
+        <section className="py-12">
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-2xl font-bold">
+              Onboarding package for{' '}
+              <span className="text-sky-400">{report.repo.fullName}</span>
+            </h2>
+            <div className="flex items-center gap-2">
+              {cached && (
+                <span className="badge bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/30">
+                  Cached
                 </span>
-                <button
-                  onClick={analyzeAnother}
-                  className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300 hover:border-slate-500"
-                >
-                  Analyze another →
-                </button>
-              </div>
+              )}
+              <span className="badge bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30">
+                Generated in {report.analysisSeconds}s
+              </span>
+              <button
+                onClick={analyzeAnother}
+                className="btn-ghost"
+              >
+                Analyze another →
+              </button>
             </div>
+          </div>
+          <div className="space-y-8">
             <ProgressTracker repo={report.repo.fullName} />
             <GettingStarted setup={report.setup} />
             <ArchitectureMap nodes={report.architectureMap} repo={report.repo} />

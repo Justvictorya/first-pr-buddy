@@ -20,10 +20,10 @@ export default function GettingStarted({ setup }: { setup: SetupInfo }) {
   ]
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+    <section className="card">
       <div className="mb-4 flex items-center gap-2">
         <span className="text-xl">🚀</span>
-        <h3 className="text-lg font-semibold">Getting Started</h3>
+        <h3 className="section-title">Getting Started</h3>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
@@ -35,7 +35,7 @@ export default function GettingStarted({ setup }: { setup: SetupInfo }) {
               <button
                 key={r.label}
                 onClick={() => copy(r.cmd)}
-                className="group flex w-full items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-left transition hover:border-sky-500/50"
+                className="group flex w-full items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-left transition hover:border-sky-500/40 hover:bg-slate-900"
               >
                 <span className="text-xs text-slate-500">{r.label}</span>
                 <code className="font-mono text-xs text-emerald-300 group-hover:text-sky-300">
@@ -56,7 +56,7 @@ export default function GettingStarted({ setup }: { setup: SetupInfo }) {
                   <button
                     key={v}
                     onClick={() => copy(v)}
-                    className="rounded bg-slate-800 px-2 py-1 font-mono text-xs text-amber-300 transition hover:bg-slate-700"
+                    className="rounded-lg bg-amber-500/10 px-2 py-1 font-mono text-xs text-amber-300 ring-1 ring-amber-500/20 transition hover:bg-amber-500/20"
                     title="copy variable name"
                   >
                     {v}
@@ -73,7 +73,9 @@ export default function GettingStarted({ setup }: { setup: SetupInfo }) {
             </p>
           )}
           {setup.hasMakefile && (
-            <p className="mt-3 text-xs text-slate-500">This repo also ships a <code className="text-slate-400">Makefile</code> — check its targets for the canonical dev workflow.</p>
+            <p className="mt-3 text-xs text-slate-500">
+              This repo also ships a <code className="text-slate-400">Makefile</code> — check its targets for the canonical dev workflow.
+            </p>
           )}
         </div>
       </div>

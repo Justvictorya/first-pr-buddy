@@ -54,17 +54,15 @@ export default function ReportChat({
   }
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+    <section className="card">
       <div className="mb-4 flex items-center gap-2">
         <span className="text-xl">💬</span>
-        <h3 className="text-lg font-semibold">Ask about this repo</h3>
-        {messages.length > 0 && (
-          <span className="ml-2 text-xs text-slate-500">
-            Powered by Groq AI (free) · answers grounded in the files I read
-          </span>
-        )}
+        <h3 className="section-title">Ask about this repo</h3>
+        <span className="ml-2 text-xs text-slate-500">
+          Powered by Groq AI (free) · answers grounded in the files I read
+        </span>
       </div>
-      <div className="mb-4 max-h-80 space-y-3 overflow-y-auto rounded-lg bg-slate-950 p-4">
+      <div className="mb-4 max-h-80 space-y-3 overflow-y-auto rounded-lg bg-slate-950/60 p-4">
         {messages.length === 0 && (
           <p className="text-sm text-slate-500">
             Try: "how do I run tests?" or "where is the API?" or "what does the auth module do?"
@@ -74,14 +72,14 @@ export default function ReportChat({
           <div key={i} className="space-y-1">
             <div
               className={`rounded-lg px-3 py-2 text-sm ${
-                m.role === 'user' ? 'bg-sky-500/10 text-sky-200' : 'bg-slate-800 text-slate-300'
+                m.role === 'user' ? 'bg-sky-500/10 text-sky-200' : 'bg-slate-800/80 text-slate-300'
               }`}
             >
               <span className="mr-2 text-xs font-semibold uppercase opacity-60">{m.role}</span>
               {m.text}
             </div>
             {m.label && m.role === 'assistant' && (
-              <span className="ml-3 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+              <span className="ml-3 badge bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30">
                 {m.label}
               </span>
             )}
@@ -94,11 +92,11 @@ export default function ReportChat({
           value={q}
           onChange={e => setQ(e.target.value)}
           placeholder="Ask anything about the codebase…"
-          className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-sky-500"
+          className="input-field"
         />
         <button
           disabled={loading || !q.trim()}
-          className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+          className="btn-primary whitespace-nowrap"
         >
           Ask
         </button>

@@ -71,10 +71,10 @@ export default function FirstTasks({
   const isRealIssues = hasRealIssues
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-      <div className="mb-6 flex items-center gap-2">
+    <section className="card">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
         <span className="text-xl">🎯</span>
-        <h3 className="text-lg font-semibold">Your First 3 Tasks</h3>
+        <h3 className="section-title">Your First 3 Tasks</h3>
         {isRealIssues && (
           <span className="ml-2 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-400">
             Real issues
