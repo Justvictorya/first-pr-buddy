@@ -49,12 +49,12 @@ export default function RootLayout({
                 GitHub
               </a>
               <a
-                href="https://www.groq.com/"
+                href="https://ollama.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/30"
               >
-                ⚡ Powered by Groq
+                ⚡ Powered by Ollama
               </a>
             </div>
           </div>

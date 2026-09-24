@@ -174,7 +174,7 @@ export default function Home() {
           <div className="space-y-8">
             <ProgressTracker repo={report.repo.fullName} />
             <GettingStarted setup={report.setup} />
-            <ArchitectureMap nodes={report.architectureMap} repo={report.repo} />
+            <ArchitectureMap nodes={report.architectureMap} repo={report.repo} sourceSamples={sourceSamples} />
             <RepoTour tour={report.tour} />
             <FirstTasks tasks={report.firstTasks} report={report} />
             <Glossary patterns={report.glossary.patterns} gotchas={report.glossary.gotchas} />

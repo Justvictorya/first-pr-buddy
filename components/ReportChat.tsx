@@ -59,7 +59,7 @@ export default function ReportChat({
         <span className="text-xl">💬</span>
         <h3 className="section-title">Ask about this repo</h3>
         <span className="ml-2 text-xs text-slate-500">
-          Powered by Groq AI (free) · answers grounded in the files I read
+          Powered by Ollama (free, local) · answers grounded in the files I read
         </span>
       </div>
       <div className="mb-4 max-h-80 space-y-3 overflow-y-auto rounded-lg bg-slate-950/60 p-4">

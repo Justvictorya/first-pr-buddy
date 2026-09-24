@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     // Map internal provider names to UI-friendly labels
     const label =
-      result.provider === 'groq' ? 'Groq AI'
+      result.provider === 'ollama' ? 'Ollama AI'
       : result.provider === 'openai' ? 'OpenAI'
       : result.provider === 'anthropic' ? 'Anthropic'
       : 'Offline mode'

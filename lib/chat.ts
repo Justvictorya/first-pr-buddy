@@ -5,7 +5,7 @@ import { heuristics } from './heuristics'
  * LLM-backed chat for the onboarding report.
  *
  * Provider order (all optional, all free-first):
- *   1. Groq        — OpenAI-compatible, free tier, model llama-3.3-70b-versatile
+ *   1. Ollama      — local model, zero cost, zero data leaves the machine
  *   2. OpenAI      — paid, optional override
  *   3. Anthropic   — paid, optional override
  *   4. Heuristics  — offline keyword fallback, always works
@@ -28,7 +28,7 @@ export interface ChatContext {
 
 export interface ChatResult {
   answer: string
-  provider: 'groq' | 'openai' | 'anthropic' | 'heuristic'
+  provider: 'ollama' | 'openai' | 'anthropic' | 'heuristic'
   citations?: string[]
 }
 
@@ -101,17 +101,29 @@ async function tryOpenAICompatible(
   return data?.choices?.[0]?.message?.content?.trim() || null
 }
 
-async function tryGroq(ctx: ChatContext): Promise<string | null> {
-  const apiKey = process.env.GROQ_API_KEY
-  if (!apiKey) return null
-  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
-  return tryOpenAICompatible(
-    ctx,
-    'https://api.groq.com/openai/v1/chat/completions',
-    apiKey,
-    model,
-    'Authorization'
-  )
+async function tryOllama(ctx: ChatContext): Promise<string | null> {
+  const endpoint = process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
+  const model = process.env.OLLAMA_MODEL || 'llama3.2:3b'
+  try {
+    const res = await fetch(`${endpoint}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        stream: false,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: buildUserPrompt(ctx) },
+        ],
+        options: { temperature: 0.2, num_predict: 800 },
+      }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data?.message?.content?.trim() || null
+  } catch {
+    return null
+  }
 }
 
 async function tryOpenAI(ctx: ChatContext): Promise<string | null> {
@@ -162,13 +174,13 @@ function extractCitations(text: string, sourceMap: Map<string, string>): string[
 }
 
 export async function chat(ctx: ChatContext): Promise<ChatResult> {
-  // Groq first (free, default), then paid providers, then offline heuristics.
-  const groqAnswer = await tryGroq(ctx)
-  if (groqAnswer) {
+  // Ollama first (free, local, offline), then paid providers, then heuristics.
+  const ollamaAnswer = await tryOllama(ctx)
+  if (ollamaAnswer) {
     return {
-      answer: groqAnswer,
-      provider: 'groq',
-      citations: extractCitations(groqAnswer, ctx.sourceMap),
+      answer: ollamaAnswer,
+      provider: 'ollama',
+      citations: extractCitations(ollamaAnswer, ctx.sourceMap),
     }
   }
 
