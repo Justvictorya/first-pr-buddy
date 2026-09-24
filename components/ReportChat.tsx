@@ -12,9 +12,10 @@ export default function ReportChat({
   sourceSamples?: SourceSample[]
 }) {
   const [q, setQ] = useState('')
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([])
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; text: string; label?: string }[]>([])
   const [loading, setLoading] = useState(false)
-  const [provider, setProvider] = useState<string | null>(null)
+  const [rateLimited, setRateLimited] = useState(false)
+  const [retryAfter, setRetryAfter] = useState('')
 
   async function ask(e: React.FormEvent) {
     e.preventDefault()
@@ -23,7 +24,7 @@ export default function ReportChat({
     setQ('')
     setMessages(m => [...m, { role: 'user', text: question }])
     setLoading(true)
-    setProvider(null)
+    setRateLimited(false)
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -35,9 +36,16 @@ export default function ReportChat({
           history: messages.slice(-8).map(m => ({ role: m.role, content: m.text })),
         }),
       })
+      if (res.status === 429) {
+        const data = await res.json()
+        const secs = Math.ceil((data.retryAfterMs || 60000) / 1000)
+        setRetryAfter(secs > 60 ? `${Math.ceil(secs / 60)} min` : `${secs}s`)
+        setRateLimited(true)
+        setMessages(m => [...m, { role: 'assistant', text: "You've reached the chat limit for this hour. Try again in a bit — or refresh the page to start a new onboarding session." }])
+        return
+      }
       const data = await res.json()
-      setMessages(m => [...m, { role: 'assistant', text: data.answer || 'No answer' }])
-      if (data.provider) setProvider(data.provider)
+      setMessages(m => [...m, { role: 'assistant', text: data.answer || 'No answer', label: data.providerLabel }])
     } catch {
       setMessages(m => [...m, { role: 'assistant', text: 'Failed to answer — try again.' }])
     } finally {
@@ -50,15 +58,9 @@ export default function ReportChat({
       <div className="mb-4 flex items-center gap-2">
         <span className="text-xl">💬</span>
         <h3 className="text-lg font-semibold">Ask about this repo</h3>
-        {provider && (
-          <span
-            className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-              provider === 'llm'
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-slate-700 text-slate-300'
-            }`}
-          >
-            {provider === 'llm' ? 'AI' : 'offline'}
+        {messages.length > 0 && (
+          <span className="ml-2 text-xs text-slate-500">
+            Powered by Groq AI (free) · answers grounded in the files I read
           </span>
         )}
       </div>
@@ -69,14 +71,20 @@ export default function ReportChat({
           </p>
         )}
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`rounded-lg px-3 py-2 text-sm ${
-              m.role === 'user' ? 'bg-sky-500/10 text-sky-200' : 'bg-slate-800 text-slate-300'
-            }`}
-          >
-            <span className="mr-2 text-xs font-semibold uppercase opacity-60">{m.role}</span>
-            {m.text}
+          <div key={i} className="space-y-1">
+            <div
+              className={`rounded-lg px-3 py-2 text-sm ${
+                m.role === 'user' ? 'bg-sky-500/10 text-sky-200' : 'bg-slate-800 text-slate-300'
+              }`}
+            >
+              <span className="mr-2 text-xs font-semibold uppercase opacity-60">{m.role}</span>
+              {m.text}
+            </div>
+            {m.label && m.role === 'assistant' && (
+              <span className="ml-3 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+                {m.label}
+              </span>
+            )}
           </div>
         ))}
         {loading && <p className="text-sm text-slate-500">Thinking…</p>}

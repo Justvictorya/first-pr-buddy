@@ -177,7 +177,7 @@ export default function Home() {
             <GettingStarted setup={report.setup} />
             <ArchitectureMap nodes={report.architectureMap} repo={report.repo} />
             <RepoTour tour={report.tour} />
-            <FirstTasks tasks={report.firstTasks} />
+            <FirstTasks tasks={report.firstTasks} report={report} />
             <Glossary patterns={report.glossary.patterns} gotchas={report.glossary.gotchas} />
             <ReportChat report={report} sourceSamples={sourceSamples} />
           </div>
